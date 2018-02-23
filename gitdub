@@ -81,7 +81,7 @@ class GitDub
     url = push['repository']['url']
     user = push['repository']['owner']['name']
     repo = push['repository']['name']
-    opts['link'] = "#{url}/compare/#{push['before']}...#{push['after']}"
+    opts['link'] = push['compare']
     $logger.info("received push from #{user}/#{repo} for commits "\
                  "#{push['before'][0..5]}...#{push['after'][0..5]}")
 
@@ -93,11 +93,11 @@ class GitDub
         entry['protocol'] ||= 'git'
         remote = case entry['protocol']
                  when /git/
-                   "git://github.com/#{user}/#{repo}.git"
+                   push['repository']['git_url']
                  when /ssh/
-                   "git@github.com:#{user}/#{repo}.git"
+                   push['repository']['ssh_url']
                  when /https/
-                   "https://github.com/#{user}/#{repo}.git"
+                   push['repository']['clone_url']
                  else
                    $logger.error("invalid protocol: #{entry['protocol']}")
                    next
