@@ -20,16 +20,22 @@ class GitNotifier
 
   public
 
-  def self.run(path, opts)
+  def run(path, opts)
     args = Hash[opts.map { |k, v| [MAPPINGS[k] || k, v] }]
-    success = execute(path, args)
+    success = @mutex.synchronize do
+      execute(path, args)
+    end
     $logger.error('git-notifier failed') unless success
     success
   end
 
   private
 
-  def self.execute(path, args = [])
+  def initialize
+    @mutex = Mutex.new
+  end
+
+  def execute(path, args = [])
     args = args.map do |k, v|
       v = v * ',' if k == 'mailinglist'
       next unless v
@@ -66,6 +72,8 @@ class GitDub
       Dir.mkdir(dir) unless Dir.exists?(dir)
       Dir.chdir(dir)
     end
+
+    @gitnotifier = GitNotifier.new
   end
 
   def process(push)
@@ -115,7 +123,7 @@ class GitDub
           opts['updateonly'] = true unless File.exists?(state_file)
         end
 
-        return GitNotifier.run(dir, opts)
+        return @gitnotifier.run(dir, opts)
       end
     end
     $logger.warn("no matching repository found for #{user}/#{repo}")
