@@ -5,6 +5,7 @@ require 'json'
 require 'logger'
 require 'sinatra/base'
 require 'yaml'
+require 'ipaddr'
 
 class GitNotifier
   STATE_FILE = '.git-notifier.dat'
@@ -86,7 +87,7 @@ class GitDub
                  "#{push['before'][0..5]}...#{push['after'][0..5]}")
 
     @github.each do |entry|
-      if "#{user}\/#{repo}" =~ Regexp.new(entry['id'])
+      if "#{user}\/#{repo}" =~ Regexp.new("^#{entry['id']}$")
         opts.merge!(entry.reject { |k, v| k == 'id' || k == 'protocol'})
         opts['uri'] ||= url
 
@@ -143,7 +144,7 @@ class GitDubServer < Sinatra::Base
 
   post '/' do
     sources = settings.allowed_sources
-    if not sources.empty? and not sources.include?(request.ip)
+    if not sources.empty? and sources.none? { |x| IPAddr.new(x) === request.ip }
       $logger.info("discarding request from disallowed address #{request.ip}")
       return
     end
