@@ -91,7 +91,7 @@ class GitDub
         opts.merge!(entry.reject { |k, v| k == 'id' || k == 'protocol'})
         opts['uri'] ||= url
 
-        entry['protocol'] ||= 'git'
+        entry['protocol'] ||= 'https'
         remote = case entry['protocol']
                  when /git/
                    push['repository']['git_url']
