@@ -79,7 +79,7 @@ class GitDub
 
   def process(push)
     opts = @notifier.clone
-    url = push['repository']['url']
+    url = push['repository']['html_url']
     user = push['repository']['owner']['name']
     repo = push['repository']['name']
     $logger.info("received push from #{user}/#{repo} for commits "\
